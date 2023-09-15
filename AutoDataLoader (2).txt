@@ -1,0 +1,61 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.*;
+
+public class AutoDataLoader {
+
+    public static void main(String[] args) {
+        String filePath = "C:/Users/Syrine Mekni/OneDrive/Desktop/mpg.text.txt"; // indicate the file path
+        
+
+
+        try (BufferedReader readMe = new BufferedReader(new FileReader(filePath)); // create a file reader buffer
+             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/Auto", "testuser", "Pa$$word")) {
+
+            String createTable =  "CREATE TABLE Mpg " +
+                    "(mpg varchar(20), " +
+                    " cylinder varchar(20), " +
+                    " displacement varchar(20), " +
+                    " horsepower varchar(20), " +
+                    " weight varchar(20), " +
+                    " acceleration varchar(20)," +
+                    "modelYear varchar(20)," +
+                    "origin varchar(20)," +
+                    "carName varchar(50))";
+
+            Statement createTableSQL = conn.createStatement(); //This statement make a connection between sql and java 
+
+            createTableSQL.executeUpdate(createTable); // this statement is to create the table
+
+            
+            String line; // this is to read every line in the file
+            //this defines the table and prepare place holders for the content of the file 
+            String insertQuery = "INSERT INTO Mpg (mpg, cylinder, displacement, horsepower, weight, acceleration, modelYear, origin, carName) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            PreparedStatement preparedStatement = conn.prepareStatement(insertQuery); //this is to execute the insertion of the file content
+
+            while ((line = readMe.readLine()) != null) {
+                //using tab to seperate the file content lines
+                String[] data = line.split("\t");
+
+                // Set the parameter values for the prepared statement
+                for (int i = 0; i < data.length; i++) {
+                    preparedStatement.setString(i + 1, data[i]);
+                }
+
+                
+                preparedStatement.executeUpdate();// execute the statement
+            }
+
+            System.out.println("Data inserted successfully.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+}
+
